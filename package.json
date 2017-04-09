@@ -4,12 +4,14 @@
   "description": "server for hackathon",
   "main": "index.js",
   "scripts": {
+    "start": "node server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Us",
   "license": "ISC",
   "dependencies": {
     "hapi": "^16.1.1",
+    "nes": "^6.4.2",
     "twit": "^2.2.5"
   }
 }
