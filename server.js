@@ -2,6 +2,7 @@
 
 const Hapi = require('hapi');
 const Twit = require('twit');
+const Nes =require('nes');
 
 const T = new Twit({
 	consumer_key: 'DiFBLMcG1itM2EAzMH0ujgNFy',
@@ -13,29 +14,49 @@ const T = new Twit({
 const server = new Hapi.Server();
 server.connection({port: 4000, host: 'localhost', routes: { cors: true }});
 
-server.route({
-	method: 'GET',
-	path: '/',
-	handler: function(request, reply){
-		reply('Hello, World!');
-	}
-})
- server.route({
- 	method: 'GET',
- 	path: '/{hashtag}',
- 	handler: function(request, reply){
- 		T.get('search/tweets', { q: `#${request.params.hashtag}`, count: 1000}, (err, data, response) => {
- 			console.log(data);
- 			reply(data);
- 		})
- 		
- 	}
- });
+server.register(Nes, function(err){
+	server.route({
+		method: 'GET',
+		path: '/',
+		handler: function(request, reply){
+			reply('Hello, World!');
+		}
+	})
 
-server.start((err) => {
-	if(err){
-		throw err;
-	}
+	server.route({
+		method: 'GET',
+		path: '/{hashtag}',
+		handler: function(request, reply){
+			T.get('search/tweets', { q: `#${request.params.hashtag}`, count: 1000}, (err, data, response) => {
+				console.log(data);
+				reply(data);
+			})
+			
+		}
+	});
 
-	console.log(`Server running at: ${server.info.uri}`)
+	server.subscription('/live');
+
+	server.route({
+		method: 'GET',
+		path: '/subscribe/{hashtag}',
+		handler: function(request, reply){
+			var stream = T.stream('statuses/filter', { track: `#${request.params.hashtag}`, language: 'en' })
+
+			stream.on('tweet', function (tweet) {
+			  console.log('THIS IS LIVE', tweet);
+			  server.publish(`/live`, tweet);
+			});
+
+			reply(`Subscribed to ${request.params.hashtag}`)
+		}
+	});
+
+	server.start((err) => {
+		if (err) {
+			throw err;
+		}
+
+		console.log(`Server running at: ${server.info.uri}`)
+	});	
 });
