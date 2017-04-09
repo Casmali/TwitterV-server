@@ -35,7 +35,7 @@ server.register(Nes, function(err){
 		}
 	});
 
-	server.subscription('/live/');
+	server.subscription('/live');
 
 	server.route({
 		method: 'GET',
@@ -44,8 +44,8 @@ server.register(Nes, function(err){
 			var stream = T.stream('statuses/filter', { track: `#${request.params.hashtag}`, language: 'en' })
 
 			stream.on('tweet', function (tweet) {
-			  console.log(tweet);
-			  server.publish(`/live/`);
+			  console.log('THIS IS LIVE', tweet);
+			  server.publish(`/live`, tweet);
 			});
 
 			reply(`Subscribed to ${request.params.hashtag}`)
